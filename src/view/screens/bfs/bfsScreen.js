@@ -103,8 +103,73 @@ export default class BFS extends React.Component {
         this.setBoard()
     }
 
-    bfs = (row, col) => {
-        console.log(row + " - " + col)
+    executeBFS = () => {
+        let m = this.state.nRows
+        let n = this.state.nCols
+
+        let matrix = this.state.gameBoard
+
+        let V = m * n;
+
+        const g1 = new GrafoBFS(V);
+
+        let q = []
+        let nodes = []
+        let start = 0
+
+        for (let i = 0; i < V; i++) {
+            nodes.push({ i: parseInt(i / n), j: i % (n), label: i, destiny: matrix[parseInt(i / n)][i % (n)].destiny, obstacle: matrix[parseInt(i / n)][i % (n)].obstacle, visited: false, cost: 0 })
+        }
+
+        for (let i = 0; i < m; i++) {
+            for (let j = 0; j < n; j++) {
+                if (matrix[i][j].origin) {
+                    start = n * i + j
+                    var originI = i
+                    var originJ = j
+                }
+                if (j != n - 1 && (!matrix[i][j].obstacle && !matrix[i][j + 1].obstacle)) {
+                    g1.addEdge(n * i + j, n * i + j + 1);
+                    g1.addEdge(n * i + j + 1, n * i + j);
+                }
+                if (i != m - 1 && (!matrix[i][j].obstacle && !matrix[i + 1][j].obstacle)) {
+                    g1.addEdge(n * i + j, n * (i + 1) + j);
+                    g1.addEdge(n * (i + 1) + j, n * i + j);
+                }
+            }
+        }
+
+        q.push(nodes[start])
+        nodes[start].visited = true
+        let minCost = Infinity
+
+        while (q.length > 0) {
+            var current = q.shift()
+            for (let i = 0; i < g1.listaAdjacencia[current.label].length; i++) {
+                if (!nodes[g1.listaAdjacencia[current.label][i].label].visited) {
+
+                    nodes[g1.listaAdjacencia[current.label][i].label].visited = true
+                    nodes[g1.listaAdjacencia[current.label][i].label].cost = 1 + current.cost
+                    nodes[g1.listaAdjacencia[current.label][i].label].parent = current
+                    if (nodes[g1.listaAdjacencia[current.label][i].label].cost < minCost
+                        && nodes[g1.listaAdjacencia[current.label][i].label].destiny) {
+                        minCost = nodes[g1.listaAdjacencia[current.label][i].label].cost
+                        // chegou no destino
+                        var destiny = nodes[g1.listaAdjacencia[current.label][i].label]
+                    }
+                    q.push(nodes[g1.listaAdjacencia[current.label][i].label])
+                }
+            }
+        }
+
+        let current2 = destiny.parent
+
+        while (!(current2.i == originI && current2.j == originJ)) {
+            let i = current2.i
+            let j = current2.j
+            this.changeTileColor(i, j)
+            current2 = current2.parent
+        }
     }
 
     setBoard = () => {
@@ -139,10 +204,25 @@ export default class BFS extends React.Component {
 
                 {this.state.board}
 
-                <TouchableOpacity style={styles.button}>
+                <TouchableOpacity style={styles.button} onPress={() => this.executeBFS()}>
                     <Text>Resolver</Text>
                 </TouchableOpacity>
             </View>
         );
+    }
+}
+
+class GrafoBFS {
+    vertices
+    listaAdjacencia = [[]]
+    constructor(vertices) {
+        this.vertices = vertices
+        for (let i = 0; i < vertices; i++) {
+            this.listaAdjacencia[i] = []
+        }
+    }
+
+    addEdge(u, v) {
+        this.listaAdjacencia[u].push({ label: v, visited: false, cost: 0 })
     }
 }

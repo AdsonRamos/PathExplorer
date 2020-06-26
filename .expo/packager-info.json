@@ -1,9 +1,10 @@
 {
   "devToolsPort": 19002,
-  "expoServerPort": 19000,
-  "packagerPort": 19001,
-  "packagerPid": 3304,
-  "expoServerNgrokUrl": "https://yy-38w.adsonramos.pathexplorer.exp.direct",
-  "packagerNgrokUrl": "https://packager.yy-38w.adsonramos.pathexplorer.exp.direct",
-  "ngrokPid": 14264
+  "expoServerPort": null,
+  "packagerPort": null,
+  "packagerPid": null,
+  "expoServerNgrokUrl": null,
+  "packagerNgrokUrl": null,
+  "ngrokPid": null,
+  "webpackServerPort": null
 }
