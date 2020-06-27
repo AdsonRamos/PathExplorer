@@ -15,7 +15,9 @@ export default class BFS extends React.Component {
             nCols: 10,
             board: [[]],
             styles: [[]],
-            touchablesGrid: [[]]
+            touchablesGrid: [[]],
+            state: 1,// 1- escolher destino, 2 - escolher origem, 3 - escolhe os obstáculos
+            instruction: "Escolha o destino"
         }
     }
 
@@ -28,39 +30,6 @@ export default class BFS extends React.Component {
                 gameBoard[i][j] = { i, j, visited: false, f: 0, g: 0, h: 0, destiny: false, obstacle: false, parent: undefined, origin: false }
             }
         }
-
-        const originI = 2
-        const originJ = 0
-
-        const destI = 2
-        const destJ = 7
-
-        gameBoard[originI][originJ].origin = true
-        gameBoard[destI][destJ].destiny = true
-        gameBoard[0][2].obstacle = true
-        gameBoard[1][2].obstacle = true
-        gameBoard[2][2].obstacle = true
-        gameBoard[3][2].obstacle = true
-        gameBoard[4][2].obstacle = true
-        // gameBoard[5][3].obstacle = true
-        // gameBoard[6][4].obstacle = true
-        // gameBoard[7][5].obstacle = true
-        // gameBoard[5][6].obstacle = true
-        // gameBoard[5][7].obstacle = true
-        // gameBoard[5][8].obstacle = true
-        // gameBoard[6][9].obstacle = true
-        // gameBoard[4][5].obstacle = true
-        // gameBoard[3][5].obstacle = true
-        // gameBoard[2][5].obstacle = true
-        // gameBoard[1][5].obstacle = true
-        // gameBoard[1][6].obstacle = true
-        // gameBoard[1][7].obstacle = true
-        // gameBoard[1][8].obstacle = true
-        // gameBoard[2][8].obstacle = true
-        // gameBoard[3][8].obstacle = true
-        // gameBoard[3][7].obstacle = true
-        // gameBoard[7][0].obstacle = true
-        // gameBoard[7][1].obstacle = true
 
         let styles = this.state.styles
 
@@ -79,7 +48,7 @@ export default class BFS extends React.Component {
             }
         }
 
-        this.setState({ styles, gameBoard })
+        this.setState({ styles, gameBoard, state: 1, instruction: "Escolha o destino." })
 
         this.setBoard()
 
@@ -93,10 +62,10 @@ export default class BFS extends React.Component {
         else if (n == 4) return styles.tilePath
     }
 
-    changeTileColor = (row, col) => {
+    changeTileColor = (row, col, typeColor) => {
 
         let styles = this.state.styles.slice()
-        styles[row][col] = 4
+        styles[row][col] = typeColor
 
         this.setState({ styles })
 
@@ -167,9 +136,30 @@ export default class BFS extends React.Component {
         while (!(current2.i == originI && current2.j == originJ)) {
             let i = current2.i
             let j = current2.j
-            this.changeTileColor(i, j)
+            // mudar essas constantes: criar um arquivo separado só para constantes de cores
+            this.changeTileColor(i, j, 4)
             current2 = current2.parent
         }
+    }
+
+    setNextStep = (i, j) => {
+        let state = this.state.state
+        let gameBoard = this.state.gameBoard
+
+        if (state == 1) {
+            this.changeTileColor(i, j, 2)
+            gameBoard[i][j].destiny = true
+            this.setState({ instruction: "Escolha a origem", state: 2 })
+        } else if (state == 2) {
+            this.changeTileColor(i, j, 3)
+            gameBoard[i][j].origin = true
+            this.setState({ instruction: "Escolha os obstáculos", state: 3 })
+        } else if (state == 3) {
+            gameBoard[i][j].obstacle = true
+            this.changeTileColor(i, j, 1)
+        }
+
+        this.setState({ gameBoard })
     }
 
     setBoard = () => {
@@ -178,7 +168,14 @@ export default class BFS extends React.Component {
         for (let i = 0; i < this.state.nRows; i++) {
             touchablesGrid[i] = []
             for (let j = 0; j < this.state.nCols; j++) {
-                touchablesGrid[i].push(<TouchableOpacity style={this.getColor(this.state.styles[i][j])} key={this.state.nRows * i + j}></TouchableOpacity>)
+                touchablesGrid[i].push(
+                    <TouchableOpacity
+                        style={this.getColor(this.state.styles[i][j])}
+                        key={this.state.nRows * i + j}
+                        onPress={() => this.setNextStep(i, j)}>
+                    </TouchableOpacity>
+                )
+
             }
             board.push(<View style={{ flexDirection: 'row' }} key={i}>{touchablesGrid[i]}</View>)
         }
@@ -200,12 +197,15 @@ export default class BFS extends React.Component {
         return (
             <View style={styles.container}>
                 <Text style={{ paddingBottom: 2, fontSize: 23, fontStyle: 'italic' }}>Vamos resolver usando BFS?</Text>
-                <Text style={{ margin: 10, fontSize: 14, fontStyle: 'italic' }}>O bloco vermelho é o destino. Blocos em rosa são obstáculos. A origem é o bloco verde claro. Desenhe o grid e clique em resolver</Text>
+                <Text style={{ margin: 10, fontSize: 14, fontStyle: 'italic' }}>{this.state.instruction}</Text>
 
                 {this.state.board}
 
                 <TouchableOpacity style={styles.button} onPress={() => this.executeBFS()}>
                     <Text>Resolver</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.button} onPress={() => this.componentDidMount()}>
+                    <Text>Limpar</Text>
                 </TouchableOpacity>
             </View>
         );
